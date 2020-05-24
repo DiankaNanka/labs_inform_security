@@ -2,122 +2,110 @@ import random
 
 
 
-alphabet = "абвгдежзиклмнопрстуфхцчшщыьэюя"
 
 
+class SimpleSubstitutionCipher:
 
-def correct(gogo):
+    alphabet = 'abcdefghigklmnopqrstuvwxyz'
 
-    text = "".join(gogo)
 
-    text = text.lower()
 
-    text = text.replace("ъ","ь")
+    def __init__(self, file_path):
 
-    text = text.replace("ё","е")
+        self.file_path = file_path
 
-    text = text.replace("й","и")
+        self.key = self.__gen_key()
 
-    text = text.replace(" ","ё")
+        self.content = self.encrypted_text = self.decrypted_text = None
 
-    return text
 
 
+    def r_file(self):
 
-def keygen():
+        with open(self.file_path, 'r', encoding='utf8') as f:
 
-    index = list(range(len(alphabet)))
+            self.content = ''.join([line for line in f])
 
-    random.shuffle(index)
 
-    key = "".join([alphabet[i] for i in index])
 
-    f = open('key.txt', 'w')
+    def __gen_key(self):
 
-    for i in range(0, len(alphabet)):
+        alphabet = SimpleSubstitutionCipher.alphabet
 
-        f.write(alphabet[i] + ' ---> ' + key[i]+ '\n')
+        alphabet_indexes = list(range(len(alphabet)))
 
-    f.write('" " -> ё')
+        random.shuffle(alphabet_indexes)
 
-    return key
+        key = ''.join([alphabet[i] for i in alphabet_indexes])
 
+        with open('./key.txt', 'w', encoding='utf8') as f:
 
+            for i in range(len(alphabet)):
 
-def crypt(g, key):
+                f.write(f'{alphabet[i]} --> {key[i]}\n')
 
-    text = list(g)
+        return key
 
-    for i in range(len(text)):
 
-        if text[i] in alphabet:
 
-            index = alphabet.index(text[i])
+    def __helper(self, action='encrypt'):
 
-            text[i] = key[index]
+        text = list(self.content)
 
-    return "".join(text)
+        alphabet = SimpleSubstitutionCipher.alphabet
 
+        alphabet += alphabet.lower()
 
+        key = self.key + self.key.lower()
 
-def decrypt(g, key):
+        if action == 'decrypt':
 
-    text = list(g)
+            text = list(self.encrypted_text)
 
-    for i in range(len(text)):
+            key, alphabet = alphabet, key
 
-        if text[i] in key:
+        for i in range(len(text)):
 
-            index2 = key.index(text[i])
+            if text[i] in alphabet:
 
-            text[i] = alphabet[index2]
+                index_in_alphabet = alphabet.index(text[i])
 
-    return "".join(text)
+                text[i] = key[index_in_alphabet]
 
+        return ''.join(text)
 
 
-def read():
 
-    text = ""
+    def enc_text(self):
 
-    f = open('ex.txt', 'r')
+        self.encrypted_text = self.__helper()
 
-    g = f.read()
 
-    text = "".join(g)
 
-    return text
+    def dec_text(self):
 
+        self.decrypted_text = self.__helper('decrypt')
 
+        print(self.decrypted_text == self.content)# для проверки
 
-def write(dada):
 
-    f = open('ex2.txt', 'w')
 
-    f.write(dada)
+    def w_file(self):
 
+        with open('./encrypted.txt', 'w', encoding='utf8') as f:
 
+            f.write(self.encrypted_text)
 
-def write_dec(a):
 
-    f = open('ex3.txt','w')
 
-    a = a.replace('ё',' ')
 
-    f.write(a)
 
+ssc = SimpleSubstitutionCipher('./encrypt.txt')
 
+ssc.r_file()
 
-text = read()
+ssc.enc_text()
 
-text = correct(text)
+ssc.dec_text()
 
-key = keygen()
-
-text = crypt(text, key)
-
-write(text)
-
-text = decrypt(text, key)
-
-write_dec(text)
+ssc.w_file()
